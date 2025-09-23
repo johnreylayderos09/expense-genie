@@ -2,9 +2,10 @@ import mongoose from "mongoose";
 
 const expenseSchema = new mongoose.Schema(
   {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     category: { type: String, required: true },
     amount: { type: Number, required: true },
-    description: { type: String, required: true },
+    description: { type: String },
     date: { type: Date, required: true },
   },
   {
@@ -13,7 +14,6 @@ const expenseSchema = new mongoose.Schema(
   }
 );
 
-// Prevent model overwrite in serverless environments
 const Expense = mongoose.models.Expense || mongoose.model('Expense', expenseSchema);
 
 export default Expense;

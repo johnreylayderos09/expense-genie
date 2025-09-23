@@ -1,7 +1,7 @@
-// api/login.js (Vercel serverless or Express)
-import connectToDatabase from '../utils/db.js';
-import User from '../models/User.js';
+import connectToDatabase from '../../utils/db.js';
+import User from '../../models/User.js';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -27,12 +27,22 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Here you might generate and return a JWT token, for example
-    return res.status(200).json({
+    // Create JWT payload
+    const payload = {
       id: user._id,
       username: user.username,
       email: user.email,
-      // token: "your-jwt-token"
+    };
+
+    // Sign token
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: '1d', // token expiry (adjust as needed)
+    });
+
+    return res.status(200).json({
+      token,
+      username: user.username,
+      email: user.email,
     });
   } catch (error) {
     console.error(error);

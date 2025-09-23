@@ -1,6 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
-const AddExpenseForm = () => { 
+const AddExpenseForm = () => {
   const [formData, setFormData] = useState({
     category: '',
     amount: '',
@@ -8,25 +8,32 @@ const AddExpenseForm = () => {
     date: '',
   });
 
+  const [error, setError] = useState("");
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (formData.amount <= 0) {
-      alert("Please enter a valid amount greater than 0.");
+      setError("Please enter a valid amount greater than 0.");
       return;
     }
-    
-    const { category, amount, description, date } = formData;
+
+    const token = localStorage.getItem("token");
 
     try {
       const res = await fetch("/api/expenses/add-expense", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, amount, description, date }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // pass JWT token here
+        },
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
@@ -40,17 +47,20 @@ const AddExpenseForm = () => {
           date: '',
         });
       } else {
-        alert("Error adding expense");
+        setError(data.message || "Error adding expense");
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong.");
+      setError("Something went wrong.");
     }
   };
 
   return (
-    <div className="flex justify-center items-center w-full"> 
-      <form onSubmit={handleSubmit} className="w-full max-w-lg space-y-4 p-6 border border-gray-300 rounded bg-white shadow-md">
+    <div className="flex justify-center items-center w-full">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-lg space-y-4 p-6 border border-gray-300 rounded bg-white shadow-md"
+      >
         <select
           name="category"
           value={formData.category}
@@ -58,7 +68,9 @@ const AddExpenseForm = () => {
           required
           className="w-full p-2 border border-gray-300 rounded"
         >
-          <option value="" disabled>Select category</option>
+          <option value="" disabled>
+            Select category
+          </option>
           <option>Food</option>
           <option>Education</option>
           <option>Clothing</option>
@@ -67,7 +79,7 @@ const AddExpenseForm = () => {
           <option>Healthcare</option>
           <option>Leisure</option>
           <option>Bills</option>
-          <option>Others</option>
+          <option>Other</option>
         </select>
 
         <input
@@ -99,6 +111,10 @@ const AddExpenseForm = () => {
           required
           className="w-full p-2 border border-gray-300 rounded"
         />
+
+        {error && (
+          <p className="text-red-600 font-semibold text-center">{error}</p>
+        )}
 
         <div className="flex justify-center">
           <button

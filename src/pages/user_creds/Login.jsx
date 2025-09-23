@@ -32,16 +32,21 @@ const Login = () => {
 
       if (res.ok) {
         alert("Login successful!");
-        // Save login status and username to localStorage
+
+        // Save JWT token in localStorage
+        localStorage.setItem("token", data.token);
+
+        // Save login status and username in localStorage
         localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("username", data.username); // assuming API returns username
+        localStorage.setItem("username", data.username);
+
         // Dispatch event so other components can update (optional but recommended)
         window.dispatchEvent(new Event("loginStatusChanged"));
+
         navigate("/");
       } else {
         setError(data.error || "Invalid credentials");
       }
-
     } catch (err) {
       console.error(err);
       setError("Something went wrong.");
@@ -62,7 +67,6 @@ const Login = () => {
         )}
 
         <form className="space-y-5" onSubmit={handleSubmit}>
-          {/* Email */}
           <div>
             <label htmlFor="email" className="block text-slate-700 mb-1">
               Email
@@ -77,7 +81,6 @@ const Login = () => {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label htmlFor="password" className="block text-slate-700 mb-1">
               Password
@@ -92,7 +95,6 @@ const Login = () => {
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="w-full py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700"
