@@ -33,7 +33,7 @@ const Dashboard = () => {
       </section>
 
       {/* Expenses section */}
-      <section className="rounded-lg bg-white p-6 shadow w-full flex flex-col items-center mt-6 max-w-7xl mx-auto">
+       <section className="rounded-lg bg-white p-6 shadow w-full flex flex-col items-center mt-6 max-w-7xl mx-auto">
         <h4 className="mb-4 text-lg font-semibold text-center">Expenses</h4>
         <ExpenseList />
       </section>

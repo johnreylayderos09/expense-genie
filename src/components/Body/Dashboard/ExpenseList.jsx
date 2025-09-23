@@ -9,6 +9,19 @@ const ExpenseList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Categories list for dropdown
+  const categories = [
+    "Food",
+    "Education",
+    "Clothing",
+    "Housing",
+    "Personal Needs",
+    "Healthcare",
+    "Leisure",
+    "Bills",
+    "Other",
+  ];
+
   // Fetch expenses from backend
   const fetchExpenses = async () => {
     setLoading(true);
@@ -109,23 +122,36 @@ const ExpenseList = () => {
     };
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+      <>
+        {/* Subtle overlay behind form */}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-10 z-40"
+          onClick={() => setSelectedExpense(null)}
+        />
+
+        {/* Modal form container */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
+          className="fixed z-50 top-1/2 left-1/2 max-w-md w-full bg-white rounded-lg shadow-lg p-6 transform -translate-x-1/2 -translate-y-1/2"
+          onClick={(e) => e.stopPropagation()} // prevent closing modal when clicking inside form
         >
           <h2 className="text-xl font-semibold mb-4">Edit Expense</h2>
 
           <label className="block mb-2">
             Category:
-            <input
-              type="text"
+            <select
               name="category"
               value={formData.category}
               onChange={handleChange}
               required
               className="w-full border rounded px-3 py-2 mt-1"
-            />
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label className="block mb-2">
@@ -182,87 +208,89 @@ const ExpenseList = () => {
             </button>
           </div>
         </form>
-      </div>
+      </>
     );
   };
 
   return (
     <div className="w-full overflow-x-auto max-w-4xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Expense Tracker</h1>
-
       {loading ? (
         <p>Loading expenses...</p>
       ) : (
         <>
-          <table className="w-full table-auto border border-gray-300 divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="text-center p-3 font-medium text-gray-700">Category</th>
-                <th className="text-center p-3 font-medium text-gray-700">Amount</th>
-                <th className="text-center p-3 font-medium text-gray-700">Description</th>
-                <th className="text-center p-3 font-medium text-gray-700">Date</th>
-                <th className="text-center p-3 font-medium text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {currentExpenses.map((expense, idx) => (
-                <tr key={expense._id || idx} className="hover:bg-gray-50">
-                  <td className="p-3 text-center">{expense.category}</td>
-                  <td className="p-3 text-center">
-                    {new Intl.NumberFormat('en-PH', {
-                      style: 'currency',
-                      currency: 'PHP',
-                      minimumFractionDigits: 2,
-                    }).format(expense.amount)}
-                  </td>
-                  <td className="p-3 text-center">{expense.description}</td>
-                  <td className="p-3 text-center">{expense.date.split("T")[0]}</td>
-                  <td className="p-3 text-center space-x-3">
-                    <button
-                      onClick={() => setSelectedExpense(expense)}
-                      className="text-blue-500 hover:text-blue-700"
-                    >
-                      <PencilSquareIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => deleteExpense(expense)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-                  </td>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full table-auto border border-gray-300 divide-y divide-gray-200">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="text-center p-3 font-medium text-gray-700">Category</th>
+                  <th className="text-center p-3 font-medium text-gray-700">Amount</th>
+                  <th className="text-center p-3 font-medium text-gray-700">Description</th>
+                  <th className="text-center p-3 font-medium text-gray-700">Date</th>
+                  <th className="text-center p-3 font-medium text-gray-700">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {currentExpenses.map((expense, idx) => (
+                  <tr key={expense._id || idx} className="hover:bg-gray-50">
+                    <td className="p-3 text-center">{expense.category}</td>
+                    <td className="p-3 text-center">
+                      {new Intl.NumberFormat('en-PH', {
+                        style: 'currency',
+                        currency: 'PHP',
+                        minimumFractionDigits: 2,
+                      }).format(expense.amount)}
+                    </td>
+                    <td className="p-3 text-center">{expense.description}</td>
+                    <td className="p-3 text-center">{expense.date.split("T")[0]}</td>
+                    <td className="p-3 text-center space-x-3">
+                      <button
+                        onClick={() => setSelectedExpense(expense)}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        <PencilSquareIcon className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => deleteExpense(expense)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-          {/* Pagination */}
-          <div className="flex justify-center mt-4 space-x-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="p-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
-            >
-              &lt;
-            </button>
-            {Array.from({ length: totalPages }, (_, index) => (
+            {/* Pagination */}
+            <div className="flex justify-center mt-4 space-x-2">
               <button
-                key={index}
-                onClick={() => handlePageChange(index + 1)}
-                className={`p-2 rounded ${
-                  currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'
-                } hover:bg-blue-400`}
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
               >
-                {index + 1}
+                &lt;
               </button>
-            ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="p-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
-            >
-              &gt;
-            </button>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`p-2 rounded ${
+                    currentPage === index + 1
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-gray-700"
+                  } hover:bg-blue-400`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
+              >
+                &gt;
+              </button>
+            </div>
           </div>
         </>
       )}
