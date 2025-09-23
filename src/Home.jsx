@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
-import Body from './components/Body.jsx';
+import Body from './components/Body/Body.jsx';
 import LandingPage from "./components/LandingPage.jsx";
 
 function Home() {
