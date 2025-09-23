@@ -23,11 +23,22 @@ export default async function handler(req, res) {
     await connectToDatabase();
 
     const user = await User.findOne({ email });
+
+    console.log("User fetched from DB:", user);
+
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    if (!user.password) {
+      console.error("User found but password field is missing!");
+      return res.status(500).json({ error: "User password missing in DB" });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
+
+    console.log("Password match result:", isMatch);
+
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -39,10 +50,7 @@ export default async function handler(req, res) {
       email: user.email,
     };
 
-    // Sign token
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: '1d', // token expiry (adjust as needed)
-    });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     return res.status(200).json({
       token,
