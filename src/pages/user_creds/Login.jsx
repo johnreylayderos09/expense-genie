@@ -34,6 +34,7 @@ const Login = () => {
       try {
         data = JSON.parse(text);
       } catch {
+        console.error('Invalid JSON response:', text);
         setError("Server returned an invalid response");
         return;
       }
@@ -41,14 +42,10 @@ const Login = () => {
       if (res.ok) {
         alert("Login successful!");
 
-        // Save JWT token in localStorage
         localStorage.setItem("token", data.token);
-
-        // Save login status and username in localStorage
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("username", data.username);
 
-        // Dispatch event so other components can update (optional but recommended)
         window.dispatchEvent(new Event("loginStatusChanged"));
 
         navigate("/");
@@ -64,9 +61,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-3xl font-bold text-slate-900 mb-6 text-center">
-          Log In
-        </h2>
+        <h2 className="text-3xl font-bold text-slate-900 mb-6 text-center">Log In</h2>
 
         {error && (
           <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center font-semibold">
@@ -76,9 +71,7 @@ const Login = () => {
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email" className="block text-slate-700 mb-1">
-              Email
-            </label>
+            <label htmlFor="email" className="block text-slate-700 mb-1">Email</label>
             <input
               type="email"
               id="email"
@@ -90,9 +83,7 @@ const Login = () => {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-slate-700 mb-1">
-              Password
-            </label>
+            <label htmlFor="password" className="block text-slate-700 mb-1">Password</label>
             <input
               type="password"
               id="password"
@@ -113,9 +104,7 @@ const Login = () => {
 
         <p className="text-sm text-center mt-4 text-slate-600">
           Don't have an account?{" "}
-          <Link to="/signup" className="text-indigo-600">
-            Sign up
-          </Link>
+          <Link to="/signup" className="text-indigo-600">Sign up</Link>
         </p>
       </div>
     </div>
