@@ -8,6 +8,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  if (!process.env.JWT_SECRET) {
+    console.error("JWT_SECRET environment variable is not set!");
+    return res.status(500).json({ error: "Server misconfiguration: JWT_SECRET not set" });
+  }
+
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -45,7 +50,7 @@ export default async function handler(req, res) {
       email: user.email,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Login handler error:", error);
     return res.status(500).json({ error: 'Server error' });
   }
 }

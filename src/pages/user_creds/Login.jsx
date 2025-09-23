@@ -28,7 +28,15 @@ const Login = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        setError("Server returned an invalid response");
+        return;
+      }
 
       if (res.ok) {
         alert("Login successful!");
@@ -48,7 +56,7 @@ const Login = () => {
         setError(data.error || "Invalid credentials");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Login fetch error:", err);
       setError("Something went wrong.");
     }
   };
