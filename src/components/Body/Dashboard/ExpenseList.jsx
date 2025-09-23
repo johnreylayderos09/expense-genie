@@ -213,12 +213,11 @@ const ExpenseList = () => {
   };
 
   return (
-    <div className="w-full overflow-x-auto max-w-4xl mx-auto p-4">
+    <div className="w-full overflow-x-auto">
       {loading ? (
         <p>Loading expenses...</p>
       ) : (
         <>
-          <div className="w-full overflow-x-auto">
             <table className="w-full table-auto border border-gray-300 divide-y divide-gray-200">
               <thead className="bg-gray-100">
                 <tr>
@@ -291,7 +290,6 @@ const ExpenseList = () => {
                 &gt;
               </button>
             </div>
-          </div>
         </>
       )}
 
