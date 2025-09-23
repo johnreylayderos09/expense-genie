@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const AddExpenseForm = ({ addExpense }) => {
+const AddExpenseForm = () => { 
   const [formData, setFormData] = useState({
     category: '',
     amount: '',
@@ -13,18 +13,42 @@ const AddExpenseForm = ({ addExpense }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.amount <= 0) {
       alert("Please enter a valid amount greater than 0.");
       return;
     }
-    addExpense(formData);
-    setFormData({ category: '', amount: '', description: '', date: '' });
+    
+    const { category, amount, description, date } = formData;
+
+    try {
+      const res = await fetch("/api/expenses/add-expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, amount, description, date }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Expense Added");
+        setFormData({
+          category: '',
+          amount: '',
+          description: '',
+          date: '',
+        });
+      } else {
+        alert("Error adding expense");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong.");
+    }
   };
 
   return (
-    
     <div className="flex justify-center items-center w-full"> 
       <form onSubmit={handleSubmit} className="w-full max-w-lg space-y-4 p-6 border border-gray-300 rounded bg-white shadow-md">
         <select
@@ -34,9 +58,7 @@ const AddExpenseForm = ({ addExpense }) => {
           required
           className="w-full p-2 border border-gray-300 rounded"
         >
-          <option value="" disabled>
-            Select category
-          </option>
+          <option value="" disabled>Select category</option>
           <option>Food</option>
           <option>Education</option>
           <option>Clothing</option>
