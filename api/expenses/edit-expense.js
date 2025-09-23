@@ -1,7 +1,7 @@
 // /api/expenses/edit-expense.js
 
-import connectToDatabase from "../../utils/db";
-import Expense from "../../models/Expense";
+import connectToDatabase from "../../utils/db.js";
+import Expense from "../../models/Expense.js";
 
 export default async function handler(req, res) {
   if (req.method !== 'PUT') {
