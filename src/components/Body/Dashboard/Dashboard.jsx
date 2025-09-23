@@ -5,15 +5,9 @@ import ExpenseList from "./ExpenseList";
 const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
   
-  // Toggle form
+  // Toggle form visibility
   const toggleForm = () => {
     setShowForm((prev) => !prev);
-  };
-
-  // Add expense
-  const addExpense = (expense) => {
-    setExpenses((prev) => [...prev, expense]);
-    setShowForm(false);
   };
 
   return (
@@ -35,15 +29,13 @@ const Dashboard = () => {
         </button>
 
         {/* Expense Form */}
-        {showForm && (
-        <AddExpenseForm addExpense={addExpense} />
-        )}
+        {showForm && <AddExpenseForm />}
       </section>
 
-      {/* Expenses section — NO extra div here */}
-   <section className="rounded-lg bg-white p-6 shadow w-full flex flex-col items-center mt-6 max-w-7xl mx-auto">
-       <h4 className="mb-4 text-lg font-semibold text-center">Expenses</h4>
-        <ExpenseList expenses={expenses} />
+      {/* Expenses section */}
+      <section className="rounded-lg bg-white p-6 shadow w-full flex flex-col items-center mt-6 max-w-7xl mx-auto">
+        <h4 className="mb-4 text-lg font-semibold text-center">Expenses</h4>
+        <ExpenseList />
       </section>
     </>
   );
