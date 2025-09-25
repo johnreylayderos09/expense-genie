@@ -288,10 +288,7 @@ const ExpenseList = () => {
         <p>Loading expenses...</p>
       ) : (
         <>
-          <table
-            className="w-full table-auto border border-gray-300 divide-y divide-gray-200"
-            style={{ tableLayout: "fixed" }}
-          >
+          <table className="w-full table-fixed border border-gray-300 divide-y divide-gray-200">
             <thead className="bg-gray-100 cursor-pointer select-none">
               <tr>
                 <th
