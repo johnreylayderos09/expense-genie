@@ -2,12 +2,12 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Dashboard from "./Dashboard/Dashboard";
-import Insights from "./Insights/Insights";
+import Summary from "./Summary/Summary";
 import Trends from "./Trends/Trends";
 import OtherInfo from "./OtherInfo/OtherInfo";
 
 const Body = () => {
-  const menuItems = ["Dashboard", "Insights", "Trends", "Other Info"];
+  const menuItems = ["Dashboard", "Summary", "Trends", "Other Info"];
   const [selectedItem, setSelectedItem] = useState(menuItems[0]);
   const [username, setUsername] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -34,8 +34,8 @@ const Body = () => {
             setExpenseForm={setExpenseForm}
           />
         );
-      case "Insights":
-        return <Insights />;
+      case "Summary":
+        return <Summary />;
       case "Trends":
         return <Trends />;
       case "Other Info":
