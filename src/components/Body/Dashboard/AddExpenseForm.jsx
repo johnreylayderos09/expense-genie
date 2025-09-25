@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const AddExpenseForm = () => {
+const AddExpenseForm = ({ onExpenseAdded }) => {
   const [formData, setFormData] = useState({
     category: '',
     amount: '',
@@ -31,7 +31,7 @@ const AddExpenseForm = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // pass JWT token here
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -46,6 +46,7 @@ const AddExpenseForm = () => {
           description: '',
           date: '',
         });
+        if (onExpenseAdded) onExpenseAdded();
       } else {
         setError(data.message || "Error adding expense");
       }

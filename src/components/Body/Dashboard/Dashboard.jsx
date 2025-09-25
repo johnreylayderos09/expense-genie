@@ -1,11 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddExpenseForm from "./AddExpenseForm";
 import ExpenseList from "./ExpenseList";
 
 const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
-  
-  // Toggle form visibility
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const token = localStorage.getItem("token");
+
+  const fetchExpenses = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/expenses/display-expense", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setExpenses(data.expenses);
+      } else {
+        alert("Failed to fetch expenses");
+      }
+    } catch (err) {
+      console.error("Error fetching expenses:", err);
+      alert("An error occurred while fetching expenses.");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
   const toggleForm = () => {
     setShowForm((prev) => !prev);
   };
@@ -29,13 +58,17 @@ const Dashboard = () => {
         </button>
 
         {/* Expense Form */}
-        {showForm && <AddExpenseForm />}
+        {showForm && <AddExpenseForm onExpenseAdded={fetchExpenses} />}
       </section>
 
       {/* Expenses section */}
-       <section className="rounded-lg bg-white p-6 shadow w-full flex flex-col items-center mt-6 max-w-7xl mx-auto">
+      <section className="rounded-lg bg-white p-6 shadow w-full flex flex-col items-center mt-6 max-w-7xl mx-auto">
         <h4 className="mb-4 text-lg font-semibold text-center">Expenses</h4>
-        <ExpenseList />
+        <ExpenseList
+          expenses={expenses}
+          loading={loading}
+          refreshExpenses={fetchExpenses}
+        />
       </section>
     </>
   );

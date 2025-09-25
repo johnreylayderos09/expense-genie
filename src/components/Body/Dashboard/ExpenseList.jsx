@@ -1,57 +1,13 @@
-import { useEffect, useState } from "react";
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useState } from "react";
+import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
-const ExpenseList = () => {
-  // States
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedExpense, setSelectedExpense] = useState(null); // For editing
+const ExpenseList = ({ expenses, loading, refreshExpenses }) => {
+  const [selectedExpense, setSelectedExpense] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Categories list for dropdown
-  const categories = [
-    "Food",
-    "Education",
-    "Clothing",
-    "Housing",
-    "Personal Needs",
-    "Healthcare",
-    "Leisure",
-    "Bills",
-    "Other",
-  ];
-
-  // Get token from localStorage
   const token = localStorage.getItem("token");
 
-  // Fetch expenses from backend
-  const fetchExpenses = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/expenses/display-expense", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setExpenses(data.expenses);
-      } else {
-        alert("Failed to fetch expenses");
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      alert("Something went wrong while fetching expenses");
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchExpenses();
-  }, []);
-
-  // Delete expense handler
   const deleteExpense = async (expense) => {
     const confirmed = window.confirm("Are you sure you want to delete this expense?");
     if (!confirmed) return;
@@ -67,7 +23,7 @@ const ExpenseList = () => {
       });
 
       if (res.ok) {
-        fetchExpenses(); // Refresh after delete
+        refreshExpenses();
       } else {
         const data = await res.json();
         alert(data.error || "Failed to delete expense");
@@ -78,7 +34,6 @@ const ExpenseList = () => {
     }
   };
 
-  // Update expense handler (called from edit form)
   const updateExpense = async (updatedExpense) => {
     try {
       const res = await fetch("/api/expenses/edit-expense", {
@@ -91,8 +46,8 @@ const ExpenseList = () => {
       });
 
       if (res.ok) {
-        fetchExpenses(); // Refresh after update
-        setSelectedExpense(null); // Close form
+        refreshExpenses();
+        setSelectedExpense(null);
       } else {
         const data = await res.json();
         alert(data.error || "Failed to update expense");
@@ -103,7 +58,6 @@ const ExpenseList = () => {
     }
   };
 
-  // Pagination calculations
   const indexOfLastExpense = currentPage * itemsPerPage;
   const indexOfFirstExpense = indexOfLastExpense - itemsPerPage;
   const currentExpenses = expenses.slice(indexOfFirstExpense, indexOfLastExpense);
@@ -113,14 +67,13 @@ const ExpenseList = () => {
     setCurrentPage(pageNumber);
   };
 
-  // --- Edit Form Component ---
   const EditExpenseForm = ({ expense }) => {
     const [formData, setFormData] = useState({
       id: expense._id,
       category: expense.category,
       amount: expense.amount,
       description: expense.description,
-      date: expense.date.split("T")[0], // assuming ISO date string
+      date: expense.date.split("T")[0],
     });
 
     const handleChange = (e) => {
@@ -130,23 +83,31 @@ const ExpenseList = () => {
 
     const handleSubmit = (e) => {
       e.preventDefault();
-      // You can add validation here if needed
       updateExpense(formData);
     };
 
+    const categories = [
+      "Food",
+      "Education",
+      "Clothing",
+      "Housing",
+      "Personal Needs",
+      "Healthcare",
+      "Leisure",
+      "Bills",
+      "Other",
+    ];
+
     return (
       <>
-        {/* Subtle overlay behind form */}
         <div
           className="fixed inset-0 bg-black bg-opacity-10 z-40"
           onClick={() => setSelectedExpense(null)}
         />
-
-        {/* Modal form container */}
         <form
           onSubmit={handleSubmit}
           className="fixed z-50 top-1/2 left-1/2 max-w-md w-full bg-white rounded-lg shadow-lg p-6 transform -translate-x-1/2 -translate-y-1/2"
-          onClick={(e) => e.stopPropagation()} // prevent closing modal when clicking inside form
+          onClick={(e) => e.stopPropagation()}
         >
           <h2 className="text-xl font-semibold mb-4">Edit Expense</h2>
 
@@ -306,7 +267,6 @@ const ExpenseList = () => {
         </>
       )}
 
-      {/* Show edit form if expense is selected */}
       {selectedExpense && <EditExpenseForm expense={selectedExpense} />}
     </div>
   );

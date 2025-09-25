@@ -26,7 +26,6 @@ const SummaryContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- Fetch expenses from API ---
   useEffect(() => {
     const fetchExpenses = async () => {
       const token = localStorage.getItem("token");
@@ -60,16 +59,12 @@ const SummaryContent = () => {
     fetchExpenses();
   }, []);
 
-  // --- Process data into chart data & insights ---
   const { pieData, barData, insights } = useMemo(() => {
     if (expenses.length === 0) return {};
 
-    // Normalize dates to ISO strings for safe string slicing
     const parsed = expenses.map((e) => {
       const dateStr =
-        typeof e.date === "string"
-          ? e.date
-          : new Date(e.date).toISOString();
+        typeof e.date === "string" ? e.date : new Date(e.date).toISOString();
       return {
         ...e,
         date: dateStr,
@@ -77,12 +72,10 @@ const SummaryContent = () => {
       };
     });
 
-    // Get latest month (by comparing ISO strings)
-    const latestMonth = parsed.reduce((latest, item) => {
-      return item.date > latest ? item.date : latest;
-    }, parsed[0].date).slice(0, 7);
+    const latestMonth = parsed
+      .reduce((latest, item) => (item.date > latest ? item.date : latest), parsed[0].date)
+      .slice(0, 7);
 
-    // --- Pie Chart Data ---
     const latestExpenses = parsed.filter((e) => e.month === latestMonth);
     const categoryTotals = {};
     latestExpenses.forEach(({ category, amount }) => {
@@ -109,7 +102,6 @@ const SummaryContent = () => {
       ],
     };
 
-    // --- Bar Chart Data ---
     const monthlyCategory = {};
     parsed.forEach(({ category, amount, month }) => {
       const key = `${month}-${category}`;
@@ -128,7 +120,6 @@ const SummaryContent = () => {
       })),
     };
 
-    // --- Insights ---
     const topCategory = pieLabels[pieAmounts.indexOf(Math.max(...pieAmounts))];
     const totalPerMonth = {};
     parsed.forEach(({ month, amount }) => {
@@ -159,7 +150,6 @@ const SummaryContent = () => {
     };
   }, [expenses]);
 
-  // --- Loading or Error State ---
   if (loading) {
     return <div className="text-center py-10 text-lg">Loading charts...</div>;
   }
@@ -174,22 +164,26 @@ const SummaryContent = () => {
 
   return (
     <div className="w-full flex flex-col items-center space-y-8 p-4 bg-gray-50">
-      {/* --- Chart Row --- */}
+      {/* Chart Row */}
       <div className="w-full flex flex-col md:flex-row justify-center items-start gap-8 max-w-6xl">
         {/* Pie Chart */}
         <div className="w-full md:w-1/2 flex flex-col items-center">
           <h2 className="text-lg font-semibold text-center mb-2">Pie Chart</h2>
-          <Pie data={pieData} />
+          <div className="w-80 h-80">
+            <Pie data={pieData} options={{ maintainAspectRatio: false }} />
+          </div>
         </div>
 
         {/* Bar Chart */}
         <div className="w-full md:w-1/2 flex flex-col items-center">
           <h2 className="text-lg font-semibold text-center mb-2">Bar Chart</h2>
-          <Bar data={barData} />
+          <div className="w-full h-80">
+            <Bar data={barData} options={{ maintainAspectRatio: false }} />
+          </div>
         </div>
       </div>
 
-      {/* --- Insights Section --- */}
+      {/* Insights Section */}
       <div className="w-full max-w-4xl mt-8 bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-bold mb-4 text-center">Insights Summary</h2>
         <ul className="list-disc list-inside space-y-2 text-gray-700 text-base leading-relaxed">
@@ -198,8 +192,8 @@ const SummaryContent = () => {
             {insights.topCategory} (₱{insights.topAmount.toFixed(2)})
           </li>
           <li>
-            <strong>Month with highest spending:</strong>{" "}
-            {insights.highestMonth} (₱{insights.highestAmount.toFixed(2)})
+            <strong>Month with highest spending:</strong> {insights.highestMonth} (₱
+            {insights.highestAmount.toFixed(2)})
           </li>
           <li>
             <strong>Spending trend:</strong> {insights.trend}
