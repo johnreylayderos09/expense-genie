@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { CheckCircleIcon } from "@heroicons/react/24/solid"; // Install @heroicons/react
+import { ClipLoader } from "react-spinners"; // Install react-spinners
 
 const AddExpenseForm = ({ onExpenseAdded }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +11,8 @@ const AddExpenseForm = ({ onExpenseAdded }) => {
   });
 
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,6 +30,9 @@ const AddExpenseForm = ({ onExpenseAdded }) => {
 
     const token = localStorage.getItem("token");
 
+    setIsLoading(true);
+    setError("");
+
     try {
       const res = await fetch("/api/expenses/add-expense", {
         method: "POST",
@@ -39,20 +46,23 @@ const AddExpenseForm = ({ onExpenseAdded }) => {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Expense Added");
         setFormData({
           category: '',
           amount: '',
           description: '',
           date: '',
         });
-        if (onExpenseAdded) onExpenseAdded();
+        setIsSuccess(true);
+        if (onExpenseAdded) onExpenseAdded(); // ✅ Trigger refresh in ExpenseList
+        setTimeout(() => setIsSuccess(false), 2000); // Optional: fade out success
       } else {
         setError(data.message || "Error adding expense");
       }
     } catch (err) {
       console.error(err);
       setError("Something went wrong.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,7 +70,7 @@ const AddExpenseForm = ({ onExpenseAdded }) => {
     <div className="flex justify-center items-center w-full">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-lg space-y-4 p-6 border border-gray-300 rounded bg-white shadow-md"
+        className="w-full max-w-lg space-y-4 p-6 border border-gray-300 rounded bg-white shadow-md relative"
       >
         <select
           name="category"
@@ -117,13 +127,17 @@ const AddExpenseForm = ({ onExpenseAdded }) => {
           <p className="text-red-600 font-semibold text-center">{error}</p>
         )}
 
-        <div className="flex justify-center">
+        <div className="flex justify-center items-center gap-2">
           <button
             type="submit"
-            className="bg-green-600 text-white font-semibold py-2 px-4 rounded hover:bg-green-700 transition"
+            className="bg-green-600 text-white font-semibold py-2 px-4 rounded hover:bg-green-700 transition disabled:opacity-50"
+            disabled={isLoading}
           >
-            Submit Expense
+            {isLoading ? 'Submitting...' : 'Submit Expense'}
           </button>
+
+          {isLoading && <ClipLoader size={20} color="#16a34a" />}
+          {isSuccess && <CheckCircleIcon className="h-6 w-6 text-green-600" />}
         </div>
       </form>
     </div>

@@ -4,39 +4,15 @@ import ExpenseList from "./ExpenseList";
 
 const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const token = localStorage.getItem("token");
-
-  const fetchExpenses = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/expenses/display-expense", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setExpenses(data.expenses);
-      } else {
-        alert("Failed to fetch expenses");
-      }
-    } catch (err) {
-      console.error("Error fetching expenses:", err);
-      alert("An error occurred while fetching expenses.");
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchExpenses();
-  }, []);
+  const [refreshToken, setRefreshToken] = useState(0);
 
   const toggleForm = () => {
     setShowForm((prev) => !prev);
+  };
+
+  const handleExpenseAdded = () => {
+    setRefreshToken((prev) => prev + 1); // trigger refresh
+    setShowForm(false); // optionally hide form after adding
   };
 
   return (
@@ -58,17 +34,13 @@ const Dashboard = () => {
         </button>
 
         {/* Expense Form */}
-        {showForm && <AddExpenseForm onExpenseAdded={fetchExpenses} />}
+        {showForm && <AddExpenseForm onExpenseAdded={handleExpenseAdded} />}
       </section>
 
       {/* Expenses section */}
       <section className="rounded-lg bg-white p-6 shadow w-full flex flex-col items-center mt-6 max-w-7xl mx-auto">
         <h4 className="mb-4 text-lg font-semibold text-center">Expenses</h4>
-        <ExpenseList
-          expenses={expenses}
-          loading={loading}
-          refreshExpenses={fetchExpenses}
-        />
+        <ExpenseList refreshToken={refreshToken} />
       </section>
     </>
   );
