@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useState } from "react";
+import AddExpenseForm from "./AddExpenseForm";
+import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 const ExpenseList = () => {
   // States
@@ -53,6 +54,11 @@ const ExpenseList = () => {
   useEffect(() => {
     fetchExpenses();
   }, []);
+
+  // Handler to refresh expenses list after adding an expense
+  const handleExpenseAdded = () => {
+    fetchExpenses();
+  };
 
   // Delete expense handler
   const deleteExpense = async (expense) => {
@@ -270,6 +276,11 @@ const ExpenseList = () => {
 
   return (
     <div className="w-full overflow-x-auto">
+      {/* AddExpenseForm */}
+      <div className="mb-6">
+        <AddExpenseForm onExpenseAdded={handleExpenseAdded} />
+      </div>
+
       {/* Search Bar aligned right */}
       <div className="mb-4 flex justify-end">
         <input
@@ -288,107 +299,107 @@ const ExpenseList = () => {
         <p>Loading expenses...</p>
       ) : (
         <>
-        {/*Table*/}
-        <table className="w-full table-auto border border-gray-300 divide-y divide-gray-200">
-          <thead className="bg-gray-100 cursor-pointer select-none">
-            <tr>
-              <th
-                className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap"
-                onClick={() => requestSort("category")}
-              >
-                Category
-                {sortConfig.key === "category"
-                  ? sortConfig.direction === "asc"
-                    ? " ▲"
-                    : " ▼"
-                  : ""}
-              </th>
-              <th
-                className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap"
-                onClick={() => requestSort("amount")}
-              >
-                Amount
-                {sortConfig.key === "amount"
-                  ? sortConfig.direction === "asc"
-                    ? " ▲"
-                    : " ▼"
-                  : ""}
-              </th>
-              <th className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap">
-                Description
-              </th>
-              <th
-                className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap"
-                onClick={() => requestSort("date")}
-              >
-                Date
-                {sortConfig.key === "date"
-                  ? sortConfig.direction === "asc"
-                    ? " ▲"
-                    : " ▼"
-                  : ""}
-              </th>
-              <th className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap">
-                Actions
-              </th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-gray-100">
-            {currentExpenses.length === 0 ? (
+          {/* Table */}
+          <table className="w-full table-auto border border-gray-300 divide-y divide-gray-200">
+            <thead className="bg-gray-100 cursor-pointer select-none">
               <tr>
-                <td colSpan="5" className="p-3 text-center text-gray-500">
-                  No expenses found.
-                </td>
+                <th
+                  className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap"
+                  onClick={() => requestSort("category")}
+                >
+                  Category
+                  {sortConfig.key === "category"
+                    ? sortConfig.direction === "asc"
+                      ? " ▲"
+                      : " ▼"
+                    : ""}
+                </th>
+                <th
+                  className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap"
+                  onClick={() => requestSort("amount")}
+                >
+                  Amount
+                  {sortConfig.key === "amount"
+                    ? sortConfig.direction === "asc"
+                      ? " ▲"
+                      : " ▼"
+                    : ""}
+                </th>
+                <th className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap">
+                  Description
+                </th>
+                <th
+                  className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap"
+                  onClick={() => requestSort("date")}
+                >
+                  Date
+                  {sortConfig.key === "date"
+                    ? sortConfig.direction === "asc"
+                      ? " ▲"
+                      : " ▼"
+                    : ""}
+                </th>
+                <th className="text-center px-4 py-3 font-medium text-gray-700 whitespace-nowrap">
+                  Actions
+                </th>
               </tr>
-            ) : (
-              currentExpenses.map((expense) => (
-                <tr key={expense._id} className="hover:bg-gray-50">
-                  <td
-                    className="text-center px-4 py-3 whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
-                    title={expense.category}
-                  >
-                    {expense.category}
-                  </td>
-                  <td className="text-center px-4 py-3 whitespace-nowrap">
-                    {new Intl.NumberFormat("en-PH", {
-                      style: "currency",
-                      currency: "PHP",
-                      minimumFractionDigits: 2,
-                    }).format(expense.amount)}
-                  </td>
-                  <td
-                    className="text-center px-4 py-3 whitespace-nowrap overflow-hidden text-ellipsis max-w-[160px]"
-                    title={expense.description}
-                  >
-                    {expense.description || "-"}
-                  </td>
-                  <td className="text-center px-4 py-3 whitespace-nowrap">
-                    {new Date(expense.date).toLocaleDateString("en-PH")}
-                  </td>
-                  <td className="text-center px-4 py-3 whitespace-nowrap flex justify-center space-x-2">
-                    <button
-                      onClick={() => setSelectedExpense(expense)}
-                      title="Edit"
-                      className="text-blue-600 hover:text-blue-800"
-                      aria-label="Edit expense"
-                    >
-                      <PencilSquareIcon className="h-5 w-5 inline" />
-                    </button>
-                    <button
-                      onClick={() => deleteExpense(expense)}
-                      title="Delete"
-                      className="text-red-600 hover:text-red-800"
-                      aria-label="Delete expense"
-                    >
-                      <TrashIcon className="h-5 w-5 inline" />
-                    </button>
+            </thead>
+
+            <tbody className="divide-y divide-gray-100">
+              {currentExpenses.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-3 text-center text-gray-500">
+                    No expenses found.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                currentExpenses.map((expense) => (
+                  <tr key={expense._id} className="hover:bg-gray-50">
+                    <td
+                      className="text-center px-4 py-3 whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
+                      title={expense.category}
+                    >
+                      {expense.category}
+                    </td>
+                    <td className="text-center px-4 py-3 whitespace-nowrap">
+                      {new Intl.NumberFormat("en-PH", {
+                        style: "currency",
+                        currency: "PHP",
+                        minimumFractionDigits: 2,
+                      }).format(expense.amount)}
+                    </td>
+                    <td
+                      className="text-center px-4 py-3 whitespace-nowrap overflow-hidden text-ellipsis max-w-[160px]"
+                      title={expense.description}
+                    >
+                      {expense.description || "-"}
+                    </td>
+                    <td className="text-center px-4 py-3 whitespace-nowrap">
+                      {new Date(expense.date).toLocaleDateString("en-PH")}
+                    </td>
+                    <td className="text-center px-4 py-3 whitespace-nowrap flex justify-center space-x-2">
+                      <button
+                        onClick={() => setSelectedExpense(expense)}
+                        title="Edit"
+                        className="text-blue-600 hover:text-blue-800"
+                        aria-label="Edit expense"
+                      >
+                        <PencilSquareIcon className="h-5 w-5 inline" />
+                      </button>
+                      <button
+                        onClick={() => deleteExpense(expense)}
+                        title="Delete"
+                        className="text-red-600 hover:text-red-800"
+                        aria-label="Delete expense"
+                      >
+                        <TrashIcon className="h-5 w-5 inline" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -405,7 +416,7 @@ const ExpenseList = () => {
                   key={page}
                   onClick={() => handlePageChange(page)}
                   className={`px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 ${
-                    page === currentPage ? "bg-blue-600 text-white" : ""
+                    currentPage === page ? "bg-blue-600 text-white" : ""
                   }`}
                 >
                   {page}
@@ -423,7 +434,7 @@ const ExpenseList = () => {
         </>
       )}
 
-      {/* Edit modal */}
+      {/* Edit Expense Modal */}
       {selectedExpense && <EditExpenseForm expense={selectedExpense} />}
     </div>
   );
