@@ -270,8 +270,8 @@ const ExpenseList = () => {
 
   return (
     <div className="w-full overflow-x-auto">
-      {/* Search Bar aligned left */}
-      <div className="mb-4 flex justify-start">
+      {/* Search Bar aligned right */}
+      <div className="mb-4 flex justify-end">
         <input
           type="text"
           placeholder="Search by category or description..."
