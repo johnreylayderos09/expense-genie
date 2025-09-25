@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import AddExpenseForm from "./AddExpenseForm";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 const ExpenseList = () => {
@@ -276,11 +275,6 @@ const ExpenseList = () => {
 
   return (
     <div className="w-full overflow-x-auto">
-      {/* AddExpenseForm */}
-      <div className="mb-6">
-        <AddExpenseForm onExpenseAdded={handleExpenseAdded} />
-      </div>
-
       {/* Search Bar aligned right */}
       <div className="mb-4 flex justify-end">
         <input
