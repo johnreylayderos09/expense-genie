@@ -354,7 +354,9 @@ const ExpenseList = () => {
               ) : (
                 currentExpenses.map((expense) => (
                   <tr key={expense._id} className="hover:bg-gray-50">
-                    <td className="text-center p-3 truncate">{expense.category}</td>
+                    <td className="text-center p-3 truncate whitespace-nowrap overflow-hidden" title={expense.category}>
+                      {expense.category}
+                    </td>
                     <td className="text-center p-3">
                       {new Intl.NumberFormat('en-PH', {
                         style: 'currency',
@@ -362,8 +364,16 @@ const ExpenseList = () => {
                         minimumFractionDigits: 2,
                       }).format(expense.amount)}
                     </td>
-                    <td className="text-center p-3 truncate">{expense.description || "-"}</td>
-                    <td className="text-center p-3">{expense.date.split("T")[0]}</td>
+                    <td className="text-center p-3 truncate whitespace-nowrap overflow-hidden" title={expense.description}>
+                      {expense.description || "-"}
+                    </td>
+                    <td className="text-center p-3 truncate whitespace-nowrap overflow-hidden" title={expense.amount}>
+                      {new Intl.NumberFormat('en-PH', {
+                        style: 'currency',
+                        currency: 'PHP',
+                        minimumFractionDigits: 2,
+                      }).format(expense.amount)}
+                    </td>
                     <td className="text-center p-3 space-x-2 flex justify-center">
                       <button
                         onClick={() => setSelectedExpense(expense)}
