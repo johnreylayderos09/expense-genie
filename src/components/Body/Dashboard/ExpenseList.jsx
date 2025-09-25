@@ -1,18 +1,34 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 
-const ExpenseList = ({ refreshFlag }) => {
+const ExpenseList = () => {
+  // States
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedExpense, setSelectedExpense] = useState(null);
+  const [selectedExpense, setSelectedExpense] = useState(null); // For editing
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [sortConfig, setSortConfig] = useState({ key: "date", direction: "desc" });
+
   const itemsPerPage = 10;
 
+  // Categories list for dropdown
+  const categories = [
+    "Food",
+    "Education",
+    "Clothing",
+    "Housing",
+    "Personal Needs",
+    "Healthcare",
+    "Leisure",
+    "Bills",
+    "Other",
+  ];
+
+  // Get token from localStorage
   const token = localStorage.getItem("token");
 
-  // Fetch expenses
+  // Fetch expenses from backend
   const fetchExpenses = async () => {
     setLoading(true);
     try {
@@ -34,15 +50,14 @@ const ExpenseList = ({ refreshFlag }) => {
     setLoading(false);
   };
 
-  // Re-fetch on mount or when refreshFlag changes
   useEffect(() => {
     fetchExpenses();
-    setCurrentPage(1); // reset page on refresh
-  }, [refreshFlag]);
+  }, []);
 
-  // Delete expense
+  // Delete expense handler
   const deleteExpense = async (expense) => {
-    if (!window.confirm("Are you sure you want to delete this expense?")) return;
+    const confirmed = window.confirm("Are you sure you want to delete this expense?");
+    if (!confirmed) return;
 
     try {
       const res = await fetch("/api/expenses/delete-expense", {
@@ -55,7 +70,7 @@ const ExpenseList = ({ refreshFlag }) => {
       });
 
       if (res.ok) {
-        fetchExpenses();
+        fetchExpenses(); // Refresh after delete
       } else {
         const data = await res.json();
         alert(data.error || "Failed to delete expense");
@@ -66,7 +81,7 @@ const ExpenseList = ({ refreshFlag }) => {
     }
   };
 
-  // Update expense
+  // Update expense handler (called from edit form)
   const updateExpense = async (updatedExpense) => {
     try {
       const res = await fetch("/api/expenses/edit-expense", {
@@ -79,8 +94,8 @@ const ExpenseList = ({ refreshFlag }) => {
       });
 
       if (res.ok) {
-        fetchExpenses();
-        setSelectedExpense(null);
+        fetchExpenses(); // Refresh after update
+        setSelectedExpense(null); // Close form
       } else {
         const data = await res.json();
         alert(data.error || "Failed to update expense");
@@ -91,7 +106,7 @@ const ExpenseList = ({ refreshFlag }) => {
     }
   };
 
-  // Sort handler
+  // Sorting helper
   const requestSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -100,177 +115,163 @@ const ExpenseList = ({ refreshFlag }) => {
     setSortConfig({ key, direction });
   };
 
-  // Filter + sort
-  const filteredAndSortedExpenses = useMemo(() => {
-    let filtered = expenses;
+  // Filter expenses by search term (category or description)
+  const filteredExpenses = expenses.filter((expense) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      expense.category.toLowerCase().includes(term) ||
+      (expense.description && expense.description.toLowerCase().includes(term))
+    );
+  });
 
-    if (searchTerm) {
-      const lowerSearch = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (expense) =>
-          expense.category.toLowerCase().includes(lowerSearch) ||
-          expense.description.toLowerCase().includes(lowerSearch)
-      );
+  // Sort filtered expenses
+  const sortedExpenses = [...filteredExpenses].sort((a, b) => {
+    let aKey = a[sortConfig.key];
+    let bKey = b[sortConfig.key];
+
+    // Special handling for date and amount
+    if (sortConfig.key === "date") {
+      aKey = new Date(aKey);
+      bKey = new Date(bKey);
+    } else if (sortConfig.key === "amount") {
+      aKey = Number(aKey);
+      bKey = Number(bKey);
+    } else {
+      // String comparison (category)
+      aKey = aKey.toString().toLowerCase();
+      bKey = bKey.toString().toLowerCase();
     }
 
-    if (sortConfig.key) {
-      filtered = [...filtered].sort((a, b) => {
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
+    if (aKey < bKey) return sortConfig.direction === "asc" ? -1 : 1;
+    if (aKey > bKey) return sortConfig.direction === "asc" ? 1 : -1;
+    return 0;
+  });
 
-        if (sortConfig.key === "date") {
-          aValue = new Date(aValue).getTime();
-          bValue = new Date(bValue).getTime();
-        }
-
-        if (sortConfig.key === "amount") {
-          aValue = Number(aValue);
-          bValue = Number(bValue);
-        }
-
-        if (typeof aValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [expenses, searchTerm, sortConfig]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredAndSortedExpenses.length / itemsPerPage);
+  // Pagination calculations
   const indexOfLastExpense = currentPage * itemsPerPage;
   const indexOfFirstExpense = indexOfLastExpense - itemsPerPage;
-  const currentExpenses = filteredAndSortedExpenses.slice(indexOfFirstExpense, indexOfLastExpense);
+  const currentExpenses = sortedExpenses.slice(indexOfFirstExpense, indexOfLastExpense);
+  const totalPages = Math.ceil(sortedExpenses.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
   };
 
-  // EditExpenseForm component inside modal
+  // --- Edit Form Component ---
   const EditExpenseForm = ({ expense }) => {
     const [formData, setFormData] = useState({
+      id: expense._id,
       category: expense.category,
       amount: expense.amount,
       description: expense.description,
-      date: expense.date.split("T")[0], // format yyyy-mm-dd
-      id: expense._id,
+      date: expense.date.split("T")[0], // assuming ISO date string
     });
-
-    const [error, setError] = useState("");
 
     const handleChange = (e) => {
       const { name, value } = e.target;
       setFormData((prev) => ({ ...prev, [name]: value }));
-      setError("");
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
       e.preventDefault();
-
-      if (Number(formData.amount) <= 0) {
-        setError("Please enter a valid amount greater than 0.");
-        return;
-      }
-
-      try {
-        await updateExpense(formData);
-      } catch {
-        setError("Error updating expense");
-      }
+      updateExpense(formData);
     };
 
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+      <>
+        {/* Overlay */}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-10 z-40"
+          onClick={() => setSelectedExpense(null)}
+        />
+
+        {/* Modal Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white p-6 rounded shadow-lg w-full max-w-md"
+          className="fixed z-50 top-1/2 left-1/2 max-w-md w-full bg-white rounded-lg shadow-lg p-6 transform -translate-x-1/2 -translate-y-1/2"
+          onClick={(e) => e.stopPropagation()}
         >
-          <h3 className="mb-4 text-lg font-semibold">Edit Expense</h3>
+          <h2 className="text-xl font-semibold mb-4">Edit Expense</h2>
 
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded mb-3"
-          >
-            <option value="" disabled>Select category</option>
-            <option>Food</option>
-            <option>Education</option>
-            <option>Clothing</option>
-            <option>Housing</option>
-            <option>Personal Needs</option>
-            <option>Healthcare</option>
-            <option>Leisure</option>
-            <option>Bills</option>
-            <option>Other</option>
-          </select>
-
-          <input
-            type="number"
-            name="amount"
-            placeholder="Amount"
-            value={formData.amount}
-            onChange={handleChange}
-            required
-            min="0"
-            step="0.01"
-            className="w-full p-2 border border-gray-300 rounded mb-3"
-          />
-
-          <input
-            type="text"
-            name="description"
-            placeholder="Description"
-            value={formData.description}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded mb-3"
-          />
-
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded mb-3"
-          />
-
-          {error && (
-            <p className="text-red-600 font-semibold mb-3">{error}</p>
-          )}
-
-          <div className="flex justify-between">
-            <button
-              type="submit"
-              className="bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
+          <label className="block mb-2">
+            Category:
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              required
+              className="w-full border rounded px-3 py-2 mt-1"
             >
-              Update
-            </button>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block mb-2">
+            Amount:
+            <input
+              type="number"
+              name="amount"
+              value={formData.amount}
+              onChange={handleChange}
+              step="0.01"
+              min="0"
+              required
+              className="w-full border rounded px-3 py-2 mt-1"
+            />
+          </label>
+
+          <label className="block mb-2">
+            Description:
+            <input
+              type="text"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2 mt-1"
+            />
+          </label>
+
+          <label className="block mb-4">
+            Date:
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              required
+              className="w-full border rounded px-3 py-2 mt-1"
+            />
+          </label>
+
+          <div className="flex justify-end space-x-2">
             <button
               type="button"
               onClick={() => setSelectedExpense(null)}
-              className="bg-gray-400 text-white font-semibold py-2 px-4 rounded hover:bg-gray-500 transition"
+              className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
             >
               Cancel
             </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Save
+            </button>
           </div>
         </form>
-      </div>
+      </>
     );
   };
 
   return (
     <div className="w-full overflow-x-auto">
-      {/* Search Bar */}
-      <div className="mb-4 flex justify-center">
+      {/* Search Bar aligned left */}
+      <div className="mb-4 flex justify-start">
         <input
           type="text"
           placeholder="Search by category or description..."
@@ -279,7 +280,7 @@ const ExpenseList = ({ refreshFlag }) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          className="w-full max-w-md p-2 border border-gray-300 rounded"
+          className="w-full max-w-sm p-2 border border-gray-300 rounded"
         />
       </div>
 
@@ -287,64 +288,98 @@ const ExpenseList = ({ refreshFlag }) => {
         <p>Loading expenses...</p>
       ) : (
         <>
-          <table className="w-full table-auto border border-gray-300 divide-y divide-gray-200">
+          <table
+            className="w-full table-auto border border-gray-300 divide-y divide-gray-200"
+            style={{ tableLayout: "fixed" }}
+          >
             <thead className="bg-gray-100 cursor-pointer select-none">
               <tr>
                 <th
                   className="text-center p-3 font-medium text-gray-700"
+                  style={{ width: "20%" }}
                   onClick={() => requestSort("category")}
                 >
                   Category
-                  {sortConfig.key === "category" ? (sortConfig.direction === "asc" ? " ▲" : " ▼") : ""}
+                  {sortConfig.key === "category"
+                    ? sortConfig.direction === "asc"
+                      ? " ▲"
+                      : " ▼"
+                    : ""}
                 </th>
                 <th
                   className="text-center p-3 font-medium text-gray-700"
+                  style={{ width: "15%" }}
                   onClick={() => requestSort("amount")}
                 >
                   Amount
-                  {sortConfig.key === "amount" ? (sortConfig.direction === "asc" ? " ▲" : " ▼") : ""}
+                  {sortConfig.key === "amount"
+                    ? sortConfig.direction === "asc"
+                      ? " ▲"
+                      : " ▼"
+                    : ""}
                 </th>
-                <th className="text-center p-3 font-medium text-gray-700">Description</th>
                 <th
                   className="text-center p-3 font-medium text-gray-700"
+                  style={{ width: "35%" }}
+                >
+                  Description
+                </th>
+                <th
+                  className="text-center p-3 font-medium text-gray-700"
+                  style={{ width: "20%" }}
                   onClick={() => requestSort("date")}
                 >
                   Date
-                  {sortConfig.key === "date" ? (sortConfig.direction === "asc" ? " ▲" : " ▼") : ""}
+                  {sortConfig.key === "date"
+                    ? sortConfig.direction === "asc"
+                      ? " ▲"
+                      : " ▼"
+                    : ""}
                 </th>
-                <th className="text-center p-3 font-medium text-gray-700">Actions</th>
+                <th
+                  className="text-center p-3 font-medium text-gray-700"
+                  style={{ width: "10%" }}
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {currentExpenses.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center p-4 text-gray-500">
+                  <td colSpan="5" className="p-3 text-center text-gray-500">
                     No expenses found.
                   </td>
                 </tr>
               ) : (
                 currentExpenses.map((expense) => (
                   <tr key={expense._id} className="hover:bg-gray-50">
-                    <td className="text-center p-3">{expense.category}</td>
-                    <td className="text-center p-3">{Number(expense.amount).toFixed(2)}</td>
-                    <td className="text-center p-3">{expense.description || "-"}</td>
-                    <td className="text-center p-3">{new Date(expense.date).toLocaleDateString()}</td>
-                    <td className="text-center p-3 space-x-2">
+                    <td className="text-center p-3 truncate">{expense.category}</td>
+                    <td className="text-center p-3">
+                      {new Intl.NumberFormat('en-PH', {
+                        style: 'currency',
+                        currency: 'PHP',
+                        minimumFractionDigits: 2,
+                      }).format(expense.amount)}
+                    </td>
+                    <td className="text-center p-3 truncate">{expense.description || "-"}</td>
+                    <td className="text-center p-3">{expense.date.split("T")[0]}</td>
+                    <td className="text-center p-3 space-x-2 flex justify-center">
                       <button
                         onClick={() => setSelectedExpense(expense)}
-                        className="text-blue-600 hover:text-blue-800"
-                        aria-label="Edit Expense"
                         title="Edit"
+                        className="text-blue-600 hover:text-blue-800"
+                        aria-label="Edit expense"
                       >
-                        <PencilSquareIcon className="inline-block w-5 h-5" />
+                        <PencilSquareIcon className="h-5 w-5 inline" />
                       </button>
                       <button
                         onClick={() => deleteExpense(expense)}
-                        className="text-red-600 hover:text-red-800"
-                        aria-label="Delete Expense"
                         title="Delete"
+                        className="text-red-600 hover:text-red-800"
+                        aria-label="Delete expense"
                       >
-                        <TrashIcon className="inline-block w-5 h-5" />
+                        <TrashIcon className="h-5 w-5 inline" />
                       </button>
                     </td>
                   </tr>
@@ -353,39 +388,41 @@ const ExpenseList = ({ refreshFlag }) => {
             </tbody>
           </table>
 
-          {/* Pagination Controls */}
-          <div className="flex justify-center mt-4 space-x-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-            >
-              Prev
-            </button>
-            {[...Array(totalPages)].map((_, idx) => (
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center space-x-2 mt-4">
               <button
-                key={idx}
-                onClick={() => handlePageChange(idx + 1)}
-                className={`px-3 py-1 rounded ${
-                  currentPage === idx + 1 ? "bg-blue-600 text-white" : "bg-gray-200"
-                }`}
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
               >
-                {idx + 1}
+                Prev
               </button>
-            ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-
-          {/* Edit Modal */}
-          {selectedExpense && <EditExpenseForm expense={selectedExpense} />}
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 ${
+                    page === currentPage ? "bg-blue-600 text-white" : ""
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </>
       )}
+
+      {/* Edit modal */}
+      {selectedExpense && <EditExpenseForm expense={selectedExpense} />}
     </div>
   );
 };
