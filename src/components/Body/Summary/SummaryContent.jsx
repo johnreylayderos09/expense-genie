@@ -26,10 +26,11 @@ const SummaryContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- Fetch expenses from API ---
+  // Fetch expenses from backend with JWT
   useEffect(() => {
     const fetchExpenses = async () => {
       const token = localStorage.getItem("token");
+
       if (!token) {
         setError("You are not logged in.");
         setLoading(false);
@@ -60,21 +61,20 @@ const SummaryContent = () => {
     fetchExpenses();
   }, []);
 
-  // --- Process data into chart data & insights ---
+  // Prepare chart data and insights
   const { pieData, barData, insights } = useMemo(() => {
     if (expenses.length === 0) return {};
 
     const parsed = expenses.map((e) => ({
       ...e,
-      month: e.date.slice(0, 7),
+      month: e.date.slice(0, 7), // e.g., "2025-09"
     }));
 
-    // Get latest month
     const latestMonth = parsed.reduce((latest, item) =>
-      item.date > latest ? item.date : latest,
+      item.date > latest ? item.date : latest
     ).slice(0, 7);
 
-    // --- Pie Chart Data ---
+    // Pie Chart Data
     const latestExpenses = parsed.filter((e) => e.month === latestMonth);
     const categoryTotals = {};
     latestExpenses.forEach(({ category, amount }) => {
@@ -101,7 +101,7 @@ const SummaryContent = () => {
       ],
     };
 
-    // --- Bar Chart Data ---
+    // Bar Chart Data
     const monthlyCategory = {};
     parsed.forEach(({ category, amount, month }) => {
       const key = `${month}-${category}`;
@@ -120,8 +120,9 @@ const SummaryContent = () => {
       })),
     };
 
-    // --- Insights ---
-    const topCategory = pieLabels[pieAmounts.indexOf(Math.max(...pieAmounts))];
+    // Insights
+    const topCategory =
+      pieLabels[pieAmounts.indexOf(Math.max(...pieAmounts))] || "N/A";
     const totalPerMonth = {};
     parsed.forEach(({ month, amount }) => {
       totalPerMonth[month] = (totalPerMonth[month] || 0) + amount;
@@ -151,7 +152,7 @@ const SummaryContent = () => {
     };
   }, [expenses]);
 
-  // --- Loading or Error State ---
+  // Handle loading or error
   if (loading) {
     return <div className="text-center py-10 text-lg">Loading charts...</div>;
   }
@@ -166,7 +167,7 @@ const SummaryContent = () => {
 
   return (
     <div className="w-full flex flex-col items-center space-y-8 p-4 bg-gray-50">
-      {/* --- Chart Row --- */}
+      {/* Charts Row */}
       <div className="w-full flex flex-col md:flex-row justify-center items-start gap-8 max-w-6xl">
         {/* Pie Chart */}
         <div className="w-full md:w-1/2 flex flex-col items-center">
@@ -181,17 +182,17 @@ const SummaryContent = () => {
         </div>
       </div>
 
-      {/* --- Insights Section --- */}
+      {/* Insights Section */}
       <div className="w-full max-w-4xl mt-8 bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-bold mb-4 text-center">Insights Summary</h2>
         <ul className="list-disc list-inside space-y-2 text-gray-700 text-base leading-relaxed">
           <li>
             <strong>Most spent category (latest month):</strong>{" "}
-            {insights.topCategory} (₱{insights.topAmount.toFixed(2)})
+            {insights.topCategory} (₱{insights.topAmount?.toFixed(2)})
           </li>
           <li>
             <strong>Month with highest spending:</strong>{" "}
-            {insights.highestMonth} (₱{insights.highestAmount.toFixed(2)})
+            {insights.highestMonth} (₱{insights.highestAmount?.toFixed(2)})
           </li>
           <li>
             <strong>Spending trend:</strong> {insights.trend}
