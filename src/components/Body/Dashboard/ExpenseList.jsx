@@ -290,56 +290,42 @@ const ExpenseList = () => {
         <>
           <table className="w-full table-fixed border border-gray-300 divide-y divide-gray-200">
             <thead className="bg-gray-100 cursor-pointer select-none">
-              <tr>
-                <th
-                  className="text-center p-3 font-medium text-gray-700"
-                  style={{ width: "20%" }}
-                  onClick={() => requestSort("category")}
+            <tr key={expense._id} className="hover:bg-gray-50">
+              <td className="text-center p-3 truncate whitespace-nowrap overflow-hidden" title={expense.category}>
+                {expense.category}
+              </td>
+              <td className="text-center p-3">
+                {new Intl.NumberFormat('en-PH', {
+                  style: 'currency',
+                  currency: 'PHP',
+                  minimumFractionDigits: 2,
+                }).format(expense.amount)}
+              </td>
+              <td className="text-center p-3 truncate whitespace-nowrap overflow-hidden" title={expense.description}>
+                {expense.description || "-"}
+              </td>
+              <td className="text-center p-3 truncate whitespace-nowrap overflow-hidden" title={new Date(expense.date).toLocaleDateString()}>
+                {new Date(expense.date).toLocaleDateString()}
+              </td>
+              <td className="text-center p-3 space-x-2 flex justify-center">
+                <button
+                  onClick={() => setSelectedExpense(expense)}
+                  title="Edit"
+                  className="text-blue-600 hover:text-blue-800"
+                  aria-label="Edit expense"
                 >
-                  Category
-                  {sortConfig.key === "category"
-                    ? sortConfig.direction === "asc"
-                      ? " ▲"
-                      : " ▼"
-                    : ""}
-                </th>
-                <th
-                  className="text-center p-3 font-medium text-gray-700"
-                  style={{ width: "15%" }}
-                  onClick={() => requestSort("amount")}
+                  <PencilSquareIcon className="h-5 w-5 inline" />
+                </button>
+                <button
+                  onClick={() => deleteExpense(expense)}
+                  title="Delete"
+                  className="text-red-600 hover:text-red-800"
+                  aria-label="Delete expense"
                 >
-                  Amount
-                  {sortConfig.key === "amount"
-                    ? sortConfig.direction === "asc"
-                      ? " ▲"
-                      : " ▼"
-                    : ""}
-                </th>
-                <th
-                  className="text-center p-3 font-medium text-gray-700"
-                  style={{ width: "35%" }}
-                >
-                  Description
-                </th>
-                <th
-                  className="text-center p-3 font-medium text-gray-700"
-                  style={{ width: "20%" }}
-                  onClick={() => requestSort("date")}
-                >
-                  Date
-                  {sortConfig.key === "date"
-                    ? sortConfig.direction === "asc"
-                      ? " ▲"
-                      : " ▼"
-                    : ""}
-                </th>
-                <th
-                  className="text-center p-3 font-medium text-gray-700"
-                  style={{ width: "10%" }}
-                >
-                  Actions
-                </th>
-              </tr>
+                  <TrashIcon className="h-5 w-5 inline" />
+                </button>
+              </td>
+            </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {currentExpenses.length === 0 ? (
