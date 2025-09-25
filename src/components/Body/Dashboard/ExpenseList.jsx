@@ -302,12 +302,6 @@ const ExpenseList = ({ refreshTrigger, onExpenseAdded }) => {
     <div className="w-full overflow-x-auto">
       {/* Search Bar and Refresh Button */}
       <div className="mb-4 flex justify-between items-center">
-        <button
-          onClick={refreshExpenses}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Refresh
-        </button>
         <input
           type="text"
           placeholder="Search by category or description..."
