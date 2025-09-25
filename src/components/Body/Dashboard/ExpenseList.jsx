@@ -39,7 +39,7 @@ const ExpenseList = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        setExpenses(data.expenses);
+        setExpenses([...data.expenses]);
       } else {
         alert("Failed to fetch expenses");
       }
