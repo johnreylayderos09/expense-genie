@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
-const ExpenseList = () => {
+const ExpenseList = ({ refreshTrigger, onExpenseAdded }) => {
   // States
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -54,10 +54,30 @@ const ExpenseList = () => {
     fetchExpenses();
   }, []);
 
+  // Auto-refresh when refreshTrigger prop changes
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchExpenses();
+    }
+  }, [refreshTrigger]);
+
   // Handler to refresh expenses list after adding an expense
   const handleExpenseAdded = () => {
     fetchExpenses();
+    // Call parent callback if provided
+    if (onExpenseAdded) {
+      onExpenseAdded();
+    }
   };
+
+  // Auto-refresh every 30 seconds (optional)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchExpenses();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Delete expense handler
   const deleteExpense = async (expense) => {
@@ -109,6 +129,11 @@ const ExpenseList = () => {
       console.error("Update error:", error);
       alert("Something went wrong while updating expense");
     }
+  };
+
+  // Manual refresh function (can be called by parent or used with a refresh button)
+  const refreshExpenses = () => {
+    fetchExpenses();
   };
 
   // Sorting helper
@@ -275,8 +300,14 @@ const ExpenseList = () => {
 
   return (
     <div className="w-full overflow-x-auto">
-      {/* Search Bar aligned right */}
-      <div className="mb-4 flex justify-end">
+      {/* Search Bar and Refresh Button */}
+      <div className="mb-4 flex justify-between items-center">
+        <button
+          onClick={refreshExpenses}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          Refresh
+        </button>
         <input
           type="text"
           placeholder="Search by category or description..."
@@ -433,5 +464,8 @@ const ExpenseList = () => {
     </div>
   );
 };
+
+// Export the refreshExpenses function along with the component
+ExpenseList.displayName = 'ExpenseList';
 
 export default ExpenseList;
