@@ -1,12 +1,41 @@
-# React + Vite
+# 💸 Expense Genie
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Your AI-assisted expense tracker that helps manage money smarter, not harder.
 
-Currently, two official plugins are available:
+Expense Genie is a sleek, animation-rich expense tracker designed to give users a powerful yet delightful financial overview. With real-time insights, AI categorization, cloud sync, and beautiful Lottie animations, managing money has never been easier or more fun.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🌐 Live Demo
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+👉 [Try the App Live](https://expensegenie.vercel.app/)
+
+---
+
+## ✨ Features
+
+- **🤖 Smart Expense Categorization:**  
+  Automatically sort transactions into categories like food, travel, utilities, and more using AI-assisted logic. No more manual organization.
+
+- **📊 Real-Time Budget Insights:**  
+  Track budgets with daily, weekly, and monthly breakdowns. Receive alerts before overspending.
+
+- **☁️ Secure Cloud Sync:**  
+  Sync financial data across all devices. Privacy is always protected.
+
+- **📈 Personalized Reports & Trends:**  
+  Generate visual reports, monitor spending trends, and get suggestions for better financial decisions.
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology            | Purpose                          |
+|-----------------------|----------------------------------|
+| React                 | Frontend JavaScript framework    |
+| Tailwind CSS          | Utility-first styling            |
+| Lottie React          | Lightweight animations           |
+| Intersection Observer | Animation on scroll              |
+| Vercel                | Hosting and CI/CD deployment     |
+
+
